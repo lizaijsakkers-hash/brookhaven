@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Brookhaven City</title>
+<style>
+body {
+  margin: 0;
+  background: #9ce6ff;
+  font-family: Arial;
+  text-align: center;
+  overflow: hidden;
+}
+h1 {
+  color: #ff72a8;
+  margin: 10px;
+}
+#game {
+  background: #8bdc91;
+  width: 95%;
+  max-width: 900px;
+  border: 5px solid white;
+  border-radius: 15px;
+}
+button {
+  background: #ff83b4;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+#info {
+  color: #444;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<h1>🏡 MY BROOKHAVEN CITY 🏡</h1>
+<div id="info">Welkom in jouw stad!</div>
+
+<canvas id="game" width="900" height="550"></canvas>
+
+<div>
+<button onclick="carMode()">🚗 Auto in/uit</button>
+<button onclick="changePlace()">🏠 Andere plek</button>
+</div>
+<p>Gebruik WASD of de pijltjes om te bewegen!</p>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let player = {x:450, y:280};
+let car = false;
+let keys = {};
+
+document.addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+});
+document.addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+let houses = [
+ {x:60,y:60,c:"#ffb6c9",name:"Pink House"},
+ {x:680,y:60,c:"#fff0a5",name:"Sunny House"},
+ {x:60,y:390,c:"#b8c8ff",name:"Blue House"},
+ {x:680,y:390,c:"#d5a5ff",name:"Purple House"}
+];
+
+function drawHouse(h) {
+  ctx.fillStyle = h.c;
+  ctx.fillRect(h.x,h.y,150,100);
+
+  ctx.fillStyle = "#a34b43";
+  ctx.beginPath();
+  ctx.moveTo(h.x-10,h.y);
+  ctx.lineTo(h.x+75,h.y-65);
+  ctx.lineTo(h.x+160,h.y);
+  ctx.fill();
+
+  ctx.fillStyle = "white";
+  ctx.fillRect(h.x+20,h.y+25,35,35);
+  ctx.fillRect(h.x+95,h.y+25,35,35);
+
+  ctx.fillStyle = "#8b5539";
+  ctx.fillRect(h.x+60,h.y+55,30,45);
+
+  ctx.fillStyle = "#333";
+  ctx.font = "14px Arial";
+  ctx.fillText(h.name,h.x+35,h.y+120);
+}
+
+function drawCity() {
+  ctx.fillStyle = "#8bdc91";
+  ctx.fillRect(0,0,900,550);
+
+  // Wegen
+  ctx.fillStyle = "#777";
+  ctx.fillRect(0,230,900,110);
+  ctx.fillRect(390,0,110,550);
+
+  // Wegstrepen
+  ctx.fillStyle = "white";
+  for(let i=0;i<900;i+=80)
+    ctx.fillRect(i,282,40,5);
+  for(let i=0;i<550;i+=80)
+    ctx.fillRect(442,i,5,40);
+
+  // Huizen
+  houses.forEach(drawHouse);
+
+  // Winkel
+  ctx.fillStyle = "#ffb347";
+  ctx.fillRect(550,20,100,90);
+  ctx.fillStyle = "white";
+  ctx.font = "18px Arial";
+  ctx.fillText("SHOP 🛍️",555,65);
+
+  // School
+  ctx.fillStyle = "#fff2a6";
+  ctx.fillRect(550,420,100,80);
+  ctx.fillStyle = "#333";
+  ctx.fillText("SCHOOL 🏫",550,465);
+
+  // Bomen
+  for(let i=0;i<8;i++){
+    let x=20+i*120;
+    ctx.fillStyle="#795333";
+    ctx.fillRect(x,175,12,35);
+    ctx.fillStyle="#268d45";
+    ctx.beginPath();
+    ctx.arc(x+6,165,25,0,Math.PI*2);
+    ctx.fill();
+  }
+}
+
+function drawPlayer() {
+  if(car) {
+    ctx.fillStyle = "#ff55a5";
+    ctx.fillRect(player.x-25,player.y-12,55,28);
+    ctx.fillStyle = "#333";
+    ctx.beginPath();
+    ctx.arc(player.x-12,player.y+18,8,0,Math.PI*2);
+    ctx.arc(player.x+17,player.y+18,8,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = "white";
+    ctx.fillRect(player.x-10,player.y-8,20,10);
+  } else {
+    ctx.fillStyle = "#ffd0a6";
+    ctx.beginPath();
+    ctx.arc(player.x,player.y-18,12,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ff72aa";
+    ctx.fillRect(player.x-12,player.y-5,24,30);
+
+    ctx.fillStyle = "#444";
+    ctx.fillRect(player.x-10,player.y+25,8,17);
+    ctx.fillRect(player.x+3,player.y+25,8,17);
+  }
+}
+
+function update() {
+  let speed = car ? 5 : 2.5;
+
+  if(keys["arrowup"] || keys["w"]) player.y-=speed;
+  if(keys["arrowdown"] || keys["s"]) player.y+=speed;
+  if(keys["arrowleft"] || keys["a"]) player.x-=speed;
+  if(keys["arrowright"] || keys["d"]) player.x+=speed;
+
+  player.x=Math.max(15,Math.min(885,player.x));
+  player.y=Math.max(15,Math.min(535,player.y));
+}
+
+function carMode() {
+  car=!car;
+  document.getElementById("info").textContent =
+    car ? "🚗 Je zit in je auto!" : "🧍 Je loopt door Brookhaven!";
+}
+
+function changePlace() {
+  player.x=450;
+  player.y=280;
+  document.getElementById("info").textContent =
+    "🏡 Je bent terug in het centrum!";
+}
+
+function loop() {
+  drawCity();
+  update();
+  drawPlayer();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
